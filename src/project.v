@@ -3,30 +3,27 @@ module tt_um_example (
     output wire [7:0] uo_out,   // Dedicated outputs
     input  wire [7:0] uio_in,   // IOs: Input path
     output wire [7:0] uio_out,  // IOs: Output path
-    output wire [7:0] uio_oe,   // IOs: Enable path (active high: 0=input, 1=output)
-    input  wire       ena,      // always 1 when the design is powered or selected
+    output wire [7:0] uio_oe,   // IOs: Enable path
+    input  wire       ena,      // always 1 when powered
     input  wire       clk,      // clock
     input  wire       rst_n     // reset_n - low active
 );
 
-    // ইনপুট ও আউটপুট ম্যাপিং
-    wire rst = !rst_n;          // rst_n কে active-high করা হলো
-    wire en  = ui_in[0];        // ui_in এর ০ নম্বর পিনটি Enable (en) হিসেবে কাজ করবে
+    // ইন্টারনাল সিগন্যাল
     reg [3:0] count;
 
-    // ৪-বিট আউটপুটকে uo_out এর প্রথম ৪টি পিনের সাথে জুড়ে দেওয়া হলো
-    assign uo_out = {4'b0000, count}; 
-
-    // ব্যবহার না করা পিনগুলো বন্ধ রাখা হলো
+    // আউটপুট অ্যাসাইনমেন্ট
+    assign uo_out  = {4'b0000, count}; 
     assign uio_out = 8'b00000000;
     assign uio_oe  = 8'b00000000;
 
-    // ৪-বিট ডাউন কাউন্টার লজিক
+    // কাউন্টার লজিক (ক্লক এবং অ্যাক্টিভ-লো রিস্টেট সরাসরি ব্যবহার করা হলো)
     always @(posedge clk) begin
-        if (rst)
+        if (!rst_n) begin
             count <= 4'b0000;
-        else if (en)
+        end else if (ui_in[0]) begin // ui_in-এর ১ম পিনটি (Bit 0) আমাদের Enable সংকেত
             count <= count - 4'b0001; 
+        end
     end
 
 endmodule
